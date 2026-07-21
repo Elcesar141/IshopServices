@@ -1,7 +1,17 @@
 ﻿var builder = WebApplication.CreateBuilder(args);
 
+// 1. Servicios
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
-builder.Services.AddCarter();
+
+// Forzamos a Carter a buscar los módulos dentro de este mismo proyecto (Catalog.API)
+var catalogAssembly = typeof(Program).Assembly;
+builder.Services.AddCarter(configurator: config =>
+{
+    var moduleTypes = catalogAssembly.GetTypes()
+        .Where(t => typeof(ICarterModule).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract)
+        .ToArray();
+    config.WithModules(moduleTypes);
+});
 
 builder.Services.AddMarten(opts =>
 {
@@ -10,6 +20,10 @@ builder.Services.AddMarten(opts =>
 
 var app = builder.Build();
 
+// 2. Ruta de prueba directa (para descartar problemas de servidor)
+app.MapGet("/test", () => "¡La API de Catálogo está viva y respondiendo!");
+
+// 3. Rutas de Carter
 app.MapCarter();
 
 app.Run();
