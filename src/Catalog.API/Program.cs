@@ -18,7 +18,21 @@ builder.Services.AddMarten(opts =>
     opts.Connection(builder.Configuration.GetConnectionString("Database")!);
 }).UseLightweightSessions();
 
+// 🟢 NUEVO: Configurar CORS
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 var app = builder.Build();
+
+// 🟢 NUEVO: Activar CORS
+app.UseCors();
 
 // 2. Ruta de prueba directa (para descartar problemas de servidor)
 app.MapGet("/test", () => "¡La API de Catálogo está viva y respondiendo!");
